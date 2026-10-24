@@ -1,5 +1,7 @@
 					
 					/*  Window RANK Functions */
+					
+
 /*  ROW_NUMBER() */
 
 -- TASK-1 : Rank the orders based on their sales from highest to lowest
@@ -155,3 +157,41 @@ FROM sales.Products)t
 WHERE Dist_rank <= 0.4;
 
 
+/* NTILE(exp) */
+
+SELECT OrderID,
+	sales,
+	NTILE(1) OVER(ORDER BY sales DESC) As OneBucket,
+	NTILE(2) OVER(ORDER BY sales DESC) As TwoBucket,
+	NTILE(3) OVER(ORDER BY sales DESC) As ThreeBucket,
+	NTILE(4) OVER(ORDER BY sales DESC) As FourBucket,
+	NTILE(5) OVER(ORDER BY sales DESC) As FiveBucket
+FROM sales.Orders;
+
+/* UseCase - DATA SEGMENTATION
+Divides a datset into distinct subsets based on certain creteria */
+
+-- TASK-9 : Segment all orders into 3 categories ie,high,medium and low sales
+
+SELECT *,
+	CASE 
+		WHEN Buckets = 1 THEN 'High'
+		WHEN Buckets = 2 THEN 'Medium'
+		ELSE 'Low'
+	END AS SalesSegmentation
+FROM(
+	SELECT 
+		OrderID,
+		sales,
+		NTILE(3) OVER (ORDER BY Sales DESC ) AS Buckets
+	FROM Sales.Orders
+	)t ;
+
+/* UseCase - EQUALIZING LOAD PROCESSING */
+
+-- in order to export the data ,divde the orders table into 2 groups
+
+SELECT
+	NTILE(2) OVER (ORDER BY Sales DESC ) AS Buckets,
+	*
+FROM Sales.Orders 
