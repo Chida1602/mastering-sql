@@ -153,3 +153,34 @@ CREATE VIEW Sales.V_Order_details AS
 );
 GO
 SELECT * FROM Sales.V_Order_details;
+
+-- USECASE-03 : Data Security
+
+/* provide a view for EU slaes Team that combines details from all
+tables and exclude data related to the USA */
+
+GO
+CREATE VIEW Sales.V_Order_details_EU AS
+(
+	SELECT 
+		o.OrderID,
+		o.OrderDate,
+		p.Product,
+		p.Category,
+		COALESCE(c.FirstName,'') + ' ' + COALESCE(c.LastName,'') AS CustomerName,
+		c.Country AS customerCountry,
+		COALESCE(e.FirstName,'') + ' ' + COALESCE(e.LastName,'') AS SalesPerson,
+		e.Department,
+		o.sales,
+		o.Quantity
+	FROM Sales.Orders As o
+	LEFT JOIN sales.Products AS p
+	ON p.ProductID =o.ProductID
+	LEFT JOIN sales.Customers as c
+	ON c.CustomerID =o.CustomerID
+	LEFT JOIN sales.Employees as e
+	ON e.EmployeeID=o.SalesPersonID
+	WHERE c.Country != 'USA'
+);
+GO
+SELECT * FROM Sales.V_Order_details_EU;
