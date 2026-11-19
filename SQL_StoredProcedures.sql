@@ -122,3 +122,43 @@ EXEC GetCustomerSummarymulti;
 -- Execute the stored Procedure of mutli queries of country 'Germany'
 
 EXEC GetCustomerSummarymulti @Country ='Germany';
+
+						/* Variables */
+
+-- Total Customers From germany : 2
+-- Average Score From Germany : 425
+
+GO
+ALTER PROCEDURE GetCustomerSummaryVariables 
+		@Country NVARCHAR(50) ='USA'
+AS 
+BEGIN 
+	-- Declare the variables
+	DECLARE @TotalCustomers INT, @AvgScore FLOAT;
+
+	SELECT 
+		@TotalCustomers= COUNT(*) ,
+		@AvgScore = AVG(Score)
+	FROM Sales.Customers
+	WHERE Country= @Country;
+
+	PRINT 'Total Customers From germany ' + @Country + ':' + CAST(@TotalCustomers As NVARCHAR);
+	PRINT 'Average Score from ' + @Country + ':' +  CAST(@AvgScore As NVARCHAR);
+
+	-- find the total number of orders and Total sales
+	SELECT 
+		COUNT(OrderID) AS TotalOrders,
+		SUM(Sales) AS TotalSales
+	FROM Sales.Orders AS o
+	JOIN Sales.Customers AS c
+	ON c.CustomerID = o.CustomerID
+	WHERE c.Country = @Country;
+END
+GO
+-- Execute the stored Procedure of varibale where country is 'USA'
+
+EXEC GetCustomerSummaryVariables;
+
+-- Execute the stored Procedure of variable where country  is 'Germany'
+
+EXEC GetCustomerSummaryVariables @Country ='Germany';
