@@ -216,7 +216,7 @@ EXEC GetCustomerSummaryIfElse;
 					/* Error Handling */
 
 GO
-CREATE PROCEDURE GetCustomerSummaryErrorhandling
+CREATE PROCEDURE GetCustomerSummaryErrorHandling
 		@Country NVARCHAR(50) ='USA'
 AS 
 
@@ -263,18 +263,90 @@ BEGIN TRY
 
 END TRY 
 BEGIN CATCH 
-	PRINT('An error occured');
-	PRINT('Error Message: '+ ERROR_MESSAGE());
-	PRINT('Error Number: '+ CAST(ERROR_NUMBER() AS NVARCHAR));
-	PRINT('Error Line: '+ CAST(ERROR_LINE() AS NVARCHAR));
-	PRINT('Erroe Procedure: ' + ERROR_PROCEDURE());
+PRINT('An error occured');
+PRINT('Error Message: '+ ERROR_MESSAGE());
+PRINT('Error Number: '+ CAST(ERROR_NUMBER() AS NVARCHAR));
+PRINT('Error Line: '+ CAST(ERROR_LINE() AS NVARCHAR));
+PRINT('Erroe Procedure: ' + ERROR_PROCEDURE());
 END CATCH
 END
 GO
 -- Execute the stored Procedure of varibale where country is 'USA'
 
-EXEC GetCustomerSummaryErrorhandling;
+EXEC GetCustomerSummaryErrorHandling;
 
 -- Execute the stored Procedure of variable where country  is 'Germany'
 
-EXEC GetCustomerSummaryErrorhandling @Country ='Germany';
+EXEC GetCustomerSummaryErrorHandling @Country ='Germany';
+
+				/* styling Stored Procedures */
+
+GO
+CREATE PROCEDURE GetCustomerSummaryStyling
+		@Country NVARCHAR(50) ='USA'
+AS 
+
+BEGIN 
+	--TRY 
+	BEGIN TRY
+		-- Declare the variables
+		DECLARE @TotalCustomers INT, @AvgScore FLOAT;
+		-- =============================
+		--Step-1: Prepare & cleanup Data
+		-- =============================
+		IF EXISTS (SELECT 1 FROM  Sales.Customers WHERE 
+			Score IS NULL AND Country = @Country)
+		BEGIN 
+			PRINT('Updating NULL Scores to 0');
+			UPDATE Sales.Customers
+			SET Score = 0
+			WHERE Score IS NULL AND Country  = @Country;
+		END
+
+		ELSE 
+		BEGIN 
+			PRINT('No NuLL Scores Found')
+		END;
+
+		-- ===================================
+		-- step-2 : Generating Summary reports
+		-- ===================================
+		-- Caluclate total customers and Average score for specific country
+		SELECT 
+			@TotalCustomers= COUNT(*) ,
+			@AvgScore = AVG(Score)
+		FROM Sales.Customers
+		WHERE Country= @Country;
+
+		PRINT 'Total Customers From germany ' + @Country + ':' + CAST(@TotalCustomers As NVARCHAR);
+		PRINT 'Average Score from ' + @Country + ':' +  CAST(@AvgScore As NVARCHAR);
+
+		-- Calculate the total number of orders and Total sales for specific Country
+		SELECT 
+			COUNT(OrderID) AS TotalOrders,
+			SUM(Sales) AS TotalSales
+		FROM Sales.Orders AS o
+		JOIN Sales.Customers AS c
+		ON c.CustomerID = o.CustomerID
+		WHERE c.Country = @Country;
+	END TRY 
+	-- ===============
+	-- Error handling 
+	-- ===============
+
+	BEGIN CATCH 
+		PRINT('An error occured');
+		PRINT('Error Message: '+ ERROR_MESSAGE());
+		PRINT('Error Number: '+ CAST(ERROR_NUMBER() AS NVARCHAR));
+		PRINT('Error Line: '+ CAST(ERROR_LINE() AS NVARCHAR));
+		PRINT('Erroe Procedure: ' + ERROR_PROCEDURE());
+	END CATCH
+END
+GO
+-- Execute the stored Procedure of varibale where country is 'USA'
+
+EXEC GetCustomerSummaryStyling;
+
+-- Execute the stored Procedure of variable where country  is 'Germany'
+
+EXEC GetCustomerSummaryStyling @Country ='Germany';
